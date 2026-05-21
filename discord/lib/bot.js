@@ -302,7 +302,17 @@ function attachAudioCapture(connection, client) {
 }
 
 async function startMeeting(client) {
-  stopCurrentConnection();
+  let connection = meetingState.connection;
+  if (!connection) {
+    connection = getVoiceConnection(GUILD_ID);
+    if (connection) {
+      meetingState.connection = connection;
+    }
+  }
+  if (connection && connection.state.status !== VoiceConnectionStatus.Destroyed) {
+    logBot("INFO", 0, "meeting", `state=already_joined|voice=${connection.state.status}`);
+    return "meeting_already_started";
+  }
 
   const guild = await client.guilds.fetch(GUILD_ID);
   const channel = await guild.channels.fetch(VOICE_CHANNEL_ID);
@@ -311,7 +321,7 @@ async function startMeeting(client) {
     throw new Error("Configured voice channel is missing or not a voice channel");
   }
 
-  const connection = joinVoiceChannel({
+  connection = joinVoiceChannel({
     channelId: channel.id,
     guildId: guild.id,
     adapterCreator: guild.voiceAdapterCreator,
@@ -322,6 +332,7 @@ async function startMeeting(client) {
   attachConnectionStateLogger(connection, "start_meeting");
   meetingState.connection = connection;
   logBot("INFO", 0, "meeting", `state=joined|guild=${guild.id}|channel=${channel.id}|voice=${connection.state.status}`);
+  return "meeting_started";
 }
 
 async function startRecording(client) {
@@ -391,9 +402,9 @@ async function main() {
     busy = true;
     try {
       if (cmd.action === "start") {
-        await startMeeting(client);
-        writeStatus(cmd.id, cmd.action, "success", "meeting_started");
-        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=meeting_started`);
+        const meetingStateResult = await startMeeting(client);
+        writeStatus(cmd.id, cmd.action, "success", meetingStateResult);
+        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=${meetingStateResult}`);
       } else if (cmd.action === "record_start") {
         const recordingState = await startRecording(client);
         writeStatus(cmd.id, cmd.action, "success", recordingState);

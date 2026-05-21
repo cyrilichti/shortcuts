@@ -19,6 +19,9 @@ while [ "$elapsed" -lt "$TIMEOUT_SECONDS" ]; do
       *"\"id\":\"$CMD_ID\",\"action\":\"start\",\"status\":\"success\",\"state\":\"meeting_started\""*)
         exit 0
         ;;
+      *"\"id\":\"$CMD_ID\",\"action\":\"start\",\"status\":\"success\",\"state\":\"meeting_already_started\""*)
+        exit 0
+        ;;
       *"\"id\":\"$CMD_ID\",\"action\":\"start\",\"status\":\"error\",\"state\":\"error\""*)
         exit 1
         ;;

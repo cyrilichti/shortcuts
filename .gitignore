@@ -4,4 +4,5 @@ vars/logs/*.log
 vars/pids/*.pid
 vars/runtime/*.json
 vars/runtime/audios/*.opus
+vars/runtime/audios/*.wav
 vars/runtime/transcripts/*.txt
