@@ -63,10 +63,31 @@ So I combined:
 
 ## Prerequisites
 
-Before using Discord meeting scripts:
+### macOS (all workflows)
 
-- Node.js installed on the Mac execution unit
-- Project dependencies installed (`npm install` at repo root)
+- iPhone Shortcuts + SSH to the Mac execution unit
+- `config/env.sh` configured from `config/env.example.sh`
+
+### Discord meeting bot (capture audio)
+
+These apply to `discord/meeting_*.sh` and `discord/lib/bot.js`.
+
+- Captured speaker files are written as `wav` in `vars/runtime/audios/`.
+
+#### Node.js
+
+- **Node.js LTS** on the Mac (currently **v24.x** Active LTS)
+
+Install or upgrade with Homebrew:
+
+#### npm dependencies (repo root)
+
+Install once after cloning or pulling dependency changes:
+
+```bash
+cd ~/Workspace/automation
+npm install
+```
 
 ---
 
