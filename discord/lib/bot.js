@@ -3,8 +3,16 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const sodium = require("libsodium-wrappers");
+const OpusScript = require("opusscript");
 const { Client, GatewayIntentBits, ChannelType } = require("discord.js");
-const { joinVoiceChannel, getVoiceConnection } = require("@discordjs/voice");
+const {
+  joinVoiceChannel,
+  getVoiceConnection,
+  EndBehaviorType,
+  VoiceConnectionStatus,
+  entersState,
+} = require("@discordjs/voice");
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const GUILD_ID = process.env.DISCORD_MEETING_GUILD_ID || "";
@@ -12,11 +20,28 @@ const VOICE_CHANNEL_ID = process.env.DISCORD_MEETING_VOICE_CHANNEL_ID || "";
 const HOME_DIR = os.homedir();
 
 const RUNTIME_DIR = path.join(HOME_DIR, "Workspace/automation/vars/runtime");
+const AUDIO_DIR = path.join(RUNTIME_DIR, "audios");
 const COMMAND_FILE = path.join(RUNTIME_DIR, "discord-command.json");
 const STATUS_FILE = path.join(RUNTIME_DIR, "discord-status.json");
 const LOG_FILE = path.join(HOME_DIR, "Workspace/automation/vars/logs/discord.log");
+const AUDIO_SAMPLE_RATE = 48000;
+const AUDIO_CHANNELS = 2;
+const AUDIO_BITS_PER_SAMPLE = 16;
+
+const meetingState = {
+  connection: null,
+  connectionStateListener: null,
+  speakingListener: null,
+  sessionId: null,
+  isRecording: false,
+  activeAudioStreams: new Map(),
+  speakerAudioFiles: new Map(),
+};
 
 function logBot(level, code, input, details) {
+  if (level !== "ERROR") {
+    return;
+  }
   const ts = new Date().toISOString();
   fs.appendFileSync(LOG_FILE, `${ts}|${level}|discord_bot|${code}|${input}|${details}\n`);
 }
@@ -61,7 +86,251 @@ function requireConfig() {
   }
 }
 
+function sanitizeForFilename(input) {
+  return String(input || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+function createSessionId() {
+  return new Date().toISOString().replace(/[:.]/g, "-");
+}
+
+function closeActiveAudioStreams() {
+  for (const speakerStreams of meetingState.activeAudioStreams.values()) {
+    const { opusStream, decoder } = speakerStreams;
+    try {
+      opusStream.destroy();
+    } catch (_err) {
+      // Ignore teardown failures during stop.
+    }
+    try {
+      if (decoder && typeof decoder.delete === "function") {
+        decoder.delete();
+      }
+    } catch (_err) {
+      // Ignore teardown failures during stop.
+    }
+  }
+  meetingState.activeAudioStreams.clear();
+}
+
+function stopCurrentConnection() {
+  stopAudioCapture();
+  if (!meetingState.connection) {
+    return;
+  }
+  if (meetingState.connectionStateListener) {
+    meetingState.connection.off("stateChange", meetingState.connectionStateListener);
+    meetingState.connectionStateListener = null;
+  }
+  meetingState.connection.destroy();
+  meetingState.connection = null;
+}
+
+function stopAudioCapture() {
+  if (meetingState.connection && meetingState.speakingListener) {
+    meetingState.connection.receiver.speaking.off("start", meetingState.speakingListener);
+    meetingState.speakingListener = null;
+  }
+
+  closeActiveAudioStreams();
+  finalizeSpeakerAudioFiles();
+  meetingState.sessionId = null;
+  meetingState.isRecording = false;
+}
+
+function getSpeakerAudioPath(sessionId, userId) {
+  const safeSession = sanitizeForFilename(sessionId);
+  const safeUser = sanitizeForFilename(userId);
+  return path.join(AUDIO_DIR, `${safeSession}__speaker-${safeUser}.wav`);
+}
+
+function buildWavHeader(dataSize) {
+  const bytesPerSample = AUDIO_BITS_PER_SAMPLE / 8;
+  const byteRate = AUDIO_SAMPLE_RATE * AUDIO_CHANNELS * bytesPerSample;
+  const blockAlign = AUDIO_CHANNELS * bytesPerSample;
+  const header = Buffer.alloc(44);
+
+  header.write("RIFF", 0);
+  header.writeUInt32LE(36 + dataSize, 4);
+  header.write("WAVE", 8);
+  header.write("fmt ", 12);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(AUDIO_CHANNELS, 22);
+  header.writeUInt32LE(AUDIO_SAMPLE_RATE, 24);
+  header.writeUInt32LE(byteRate, 28);
+  header.writeUInt16LE(blockAlign, 32);
+  header.writeUInt16LE(AUDIO_BITS_PER_SAMPLE, 34);
+  header.write("data", 36);
+  header.writeUInt32LE(dataSize, 40);
+
+  return header;
+}
+
+function getOrCreateSpeakerAudioFile(sessionId, userId) {
+  if (meetingState.speakerAudioFiles.has(userId)) {
+    return meetingState.speakerAudioFiles.get(userId);
+  }
+
+  const filePath = getSpeakerAudioPath(sessionId, userId);
+  const fd = fs.openSync(filePath, "w");
+  fs.writeSync(fd, buildWavHeader(0), 0, 44, 0);
+  const speakerAudioFile = {
+    userId,
+    filePath,
+    fd,
+    pcmBytes: 0,
+    closed: false,
+  };
+  meetingState.speakerAudioFiles.set(userId, speakerAudioFile);
+  logBot("INFO", 0, "audio_capture", `session=${sessionId}|speaker=${userId}|file=${filePath}`);
+  return speakerAudioFile;
+}
+
+function finalizeSpeakerAudioFile(speakerAudioFile) {
+  if (speakerAudioFile.closed) {
+    return;
+  }
+  fs.writeSync(speakerAudioFile.fd, buildWavHeader(speakerAudioFile.pcmBytes), 0, 44, 0);
+  fs.closeSync(speakerAudioFile.fd);
+  speakerAudioFile.closed = true;
+}
+
+function finalizeSpeakerAudioFiles() {
+  for (const speakerAudioFile of meetingState.speakerAudioFiles.values()) {
+    finalizeSpeakerAudioFile(speakerAudioFile);
+  }
+  meetingState.speakerAudioFiles.clear();
+}
+
+function attachConnectionStateLogger(connection) {
+  if (meetingState.connection === connection && meetingState.connectionStateListener) {
+    return;
+  }
+  if (meetingState.connection && meetingState.connectionStateListener) {
+    meetingState.connection.off("stateChange", meetingState.connectionStateListener);
+    meetingState.connectionStateListener = null;
+  }
+  const listener = (_oldState, newState) => {
+    logBot("INFO", 0, "voice", `state=${newState.status}`);
+  };
+  connection.on("stateChange", listener);
+  meetingState.connection = connection;
+  meetingState.connectionStateListener = listener;
+}
+
+async function waitForVoiceReady(connection, scope) {
+  if (connection.state.status === VoiceConnectionStatus.Ready) {
+    logBot("INFO", 0, "voice", `scope=${scope}|state=ready`);
+    return;
+  }
+
+  logBot("INFO", 0, "voice", `scope=${scope}|state=${connection.state.status}|waiting_ready`);
+  await entersState(connection, VoiceConnectionStatus.Ready, 20_000);
+  logBot("INFO", 0, "voice", `scope=${scope}|state=ready`);
+}
+
+function startSpeakerCapture(receiver, client, userId) {
+  if (!meetingState.sessionId) {
+    return;
+  }
+
+  if (client.user && userId === client.user.id) {
+    return;
+  }
+
+  if (meetingState.activeAudioStreams.has(userId)) {
+    return;
+  }
+
+  const speakerAudioFile = getOrCreateSpeakerAudioFile(meetingState.sessionId, userId);
+  const opusStream = receiver.subscribe(userId, {
+    end: {
+      behavior: EndBehaviorType.AfterSilence,
+      duration: 1500,
+    },
+  });
+  const decoder = new OpusScript(AUDIO_SAMPLE_RATE, AUDIO_CHANNELS, OpusScript.Application.AUDIO);
+  const speakerStream = {
+    opusStream,
+    decoder,
+    opusBytesReceived: 0,
+    pcmBytesWritten: 0,
+  };
+
+  meetingState.activeAudioStreams.set(userId, speakerStream);
+
+  opusStream.on("data", (chunk) => {
+    speakerStream.opusBytesReceived += chunk.length;
+    try {
+      const pcmChunk = decoder.decode(chunk);
+      const pcmBuffer = Buffer.isBuffer(pcmChunk) ? pcmChunk : Buffer.from(pcmChunk);
+      fs.writeSync(
+        speakerAudioFile.fd,
+        pcmBuffer,
+        0,
+        pcmBuffer.length,
+        44 + speakerAudioFile.pcmBytes,
+      );
+      speakerStream.pcmBytesWritten += pcmBuffer.length;
+      speakerAudioFile.pcmBytes += pcmBuffer.length;
+    } catch (err) {
+      const message = err && err.message ? err.message : "opus_decode_error";
+      logBot("ERROR", 72, "audio_capture", `session=${meetingState.sessionId}|speaker=${userId}|${message}`);
+    }
+  });
+
+  opusStream.on("error", (err) => {
+    const message = err && err.message ? err.message : "speaker_stream_error";
+    logBot("ERROR", 70, "audio_capture", `session=${meetingState.sessionId}|speaker=${userId}|${message}`);
+  });
+
+  let released = false;
+  const releaseStream = (reason) => () => {
+    if (released) {
+      return;
+    }
+    released = true;
+    meetingState.activeAudioStreams.delete(userId);
+    logBot(
+      "INFO",
+      0,
+      "audio_capture",
+      `session=${meetingState.sessionId}|speaker=${userId}|state=stream_closed|reason=${reason}|opus_bytes=${speakerStream.opusBytesReceived}|pcm_bytes=${speakerStream.pcmBytesWritten}`,
+    );
+    if (typeof decoder.delete === "function") {
+      decoder.delete();
+    }
+  };
+  opusStream.once("end", releaseStream("end"));
+  opusStream.once("close", releaseStream("close"));
+}
+
+function attachAudioCapture(connection, client) {
+  const receiver = connection.receiver;
+
+  const speakingListener = (userId) => {
+    startSpeakerCapture(receiver, client, userId);
+  };
+
+  meetingState.speakingListener = speakingListener;
+  receiver.speaking.on("start", speakingListener);
+  logBot("INFO", 0, "audio_capture", `session=${meetingState.sessionId}|state=speaking_listener_attached`);
+}
+
 async function startMeeting(client) {
+  let connection = meetingState.connection;
+  if (!connection) {
+    connection = getVoiceConnection(GUILD_ID);
+    if (connection) {
+      meetingState.connection = connection;
+    }
+  }
+  if (connection && connection.state.status !== VoiceConnectionStatus.Destroyed) {
+    logBot("INFO", 0, "meeting", `state=already_joined|voice=${connection.state.status}`);
+    return "meeting_already_started";
+  }
+
   const guild = await client.guilds.fetch(GUILD_ID);
   const channel = await guild.channels.fetch(VOICE_CHANNEL_ID);
 
@@ -69,24 +338,59 @@ async function startMeeting(client) {
     throw new Error("Configured voice channel is missing or not a voice channel");
   }
 
-  joinVoiceChannel({
+  connection = joinVoiceChannel({
     channelId: channel.id,
     guildId: guild.id,
     adapterCreator: guild.voiceAdapterCreator,
     selfDeaf: false,
-    selfMute: true,
+    selfMute: false,
   });
+
+  attachConnectionStateLogger(connection);
+  meetingState.connection = connection;
+  logBot("INFO", 0, "meeting", `state=joined|guild=${guild.id}|channel=${channel.id}|voice=${connection.state.status}`);
+  return "meeting_started";
+}
+
+async function startRecording(client) {
+  let connection = meetingState.connection;
+  if (!connection) {
+    connection = getVoiceConnection(GUILD_ID);
+    if (connection) {
+      meetingState.connection = connection;
+    }
+  }
+
+  if (!connection) {
+    throw new Error("meeting_not_started");
+  }
+
+  if (meetingState.isRecording) {
+    return "recording_already_started";
+  }
+
+  attachConnectionStateLogger(connection);
+  await waitForVoiceReady(connection, "record_start");
+  meetingState.sessionId = createSessionId();
+  meetingState.isRecording = true;
+  attachAudioCapture(connection, client);
+  logBot("INFO", 0, "audio_capture", `session=${meetingState.sessionId}|state=ready`);
+  return "recording_started";
 }
 
 function stopMeeting() {
-  const connection = getVoiceConnection(GUILD_ID);
-  if (connection) {
-    connection.destroy();
+  stopCurrentConnection();
+
+  const staleConnection = getVoiceConnection(GUILD_ID);
+  if (staleConnection) {
+    staleConnection.destroy();
   }
 }
 
 async function main() {
   requireConfig();
+
+  await sodium.ready;
 
   const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
@@ -103,16 +407,23 @@ async function main() {
       return;
     }
     const cmd = readCommand();
-    if (!cmd || !cmd.id || !cmd.action) {
+    if (!cmd) {
+      return;
+    }
+    if (!cmd.id || !cmd.action) {
       return;
     }
 
     busy = true;
     try {
       if (cmd.action === "start") {
-        await startMeeting(client);
-        writeStatus(cmd.id, cmd.action, "success", "meeting_started");
-        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=meeting_started`);
+        const meetingStateResult = await startMeeting(client);
+        writeStatus(cmd.id, cmd.action, "success", meetingStateResult);
+        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=${meetingStateResult}`);
+      } else if (cmd.action === "record_start") {
+        const recordingState = await startRecording(client);
+        writeStatus(cmd.id, cmd.action, "success", recordingState);
+        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=${recordingState}`);
       } else if (cmd.action === "stop") {
         stopMeeting();
         writeStatus(cmd.id, cmd.action, "success", "meeting_stopped");

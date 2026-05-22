@@ -63,10 +63,31 @@ So I combined:
 
 ## Prerequisites
 
-Before using Discord meeting scripts:
+### macOS (all workflows)
 
-- Node.js installed on the Mac execution unit
-- Project dependencies installed (`npm install` at repo root)
+- iPhone Shortcuts + SSH to the Mac execution unit
+- `config/env.sh` configured from `config/env.example.sh`
+
+### Discord meeting bot (capture audio)
+
+These apply to `discord/meeting_*.sh` and `discord/lib/bot.js`.
+
+- Captured speaker files are written as `wav` in `vars/runtime/audios/`.
+
+#### Node.js
+
+- **Node.js LTS** on the Mac (currently **v24.x** Active LTS)
+
+Install or upgrade with Homebrew:
+
+#### npm dependencies (repo root)
+
+Install once after cloning or pulling dependency changes:
+
+```bash
+cd ~/Workspace/automation
+npm install
+```
 
 ---
 
@@ -138,15 +159,15 @@ Prioritized by ROI: frequency, time saved, implementation effort, and risk.
 - [x] Open ClickUp roadmaps
 - [x] Open a specific ClickUp backlog
 - [x] Start/stop a Discord meeting bot session
+- [x] Record a Discord meeting audio
+- [ ] Transcribe a recorded meeting
+- [ ] Summarize a meeting transcript
 - [ ] Notify teammates on Rocket.Chat when meeting starts
 - [ ] Prepare a meeting workspace (Discord, ClickUp, browser, window layout)
-- [ ] Create a simple ClickUp bug ticket
-- [ ] Create a structured ClickUp ticket (list, type, taxonomy, description, assignment)
-- [ ] Create a ClickUp bug from a support ticket
+- [ ] Convert Os ticket task into clickup task
 - [ ] Create multiple inbox tasks from a multi-line list
 - [ ] Schedule a Discord meeting
 - [ ] Send a reusable Rocket.Chat notification
-- [ ] Generate a meeting report from a transcription
 - [ ] Add generic macOS workspace actions (split windows, fullscreen, open context)
 
 ---
