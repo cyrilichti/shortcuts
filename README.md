@@ -159,15 +159,15 @@ Prioritized by ROI: frequency, time saved, implementation effort, and risk.
 - [x] Open ClickUp roadmaps
 - [x] Open a specific ClickUp backlog
 - [x] Start/stop a Discord meeting bot session
+- [x] Record a Discord meeting audio
+- [ ] Transcribe a recorded meeting
+- [ ] Summarize a meeting transcript
 - [ ] Notify teammates on Rocket.Chat when meeting starts
 - [ ] Prepare a meeting workspace (Discord, ClickUp, browser, window layout)
-- [ ] Create a simple ClickUp bug ticket
-- [ ] Create a structured ClickUp ticket (list, type, taxonomy, description, assignment)
-- [ ] Create a ClickUp bug from a support ticket
+- [ ] Convert Os ticket task into clickup task
 - [ ] Create multiple inbox tasks from a multi-line list
 - [ ] Schedule a Discord meeting
 - [ ] Send a reusable Rocket.Chat notification
-- [ ] Generate a meeting report from a transcription
 - [ ] Add generic macOS workspace actions (split windows, fullscreen, open context)
 
 ---
