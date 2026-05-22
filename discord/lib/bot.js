@@ -31,6 +31,7 @@ const AUDIO_BITS_PER_SAMPLE = 16;
 
 const meetingState = {
   connection: null,
+  connectionStateListener: null,
   speakingListener: null,
   sessionId: null,
   isRecording: false,
@@ -115,6 +116,10 @@ function stopCurrentConnection() {
   if (!meetingState.connection) {
     return;
   }
+  if (meetingState.connectionStateListener) {
+    meetingState.connection.off("stateChange", meetingState.connectionStateListener);
+    meetingState.connectionStateListener = null;
+  }
   meetingState.connection.destroy();
   meetingState.connection = null;
 }
@@ -196,10 +201,20 @@ function finalizeSpeakerAudioFiles() {
   meetingState.speakerAudioFiles.clear();
 }
 
-function attachConnectionStateLogger(connection, scope) {
-  connection.on("stateChange", (_oldState, newState) => {
-    logBot("INFO", 0, "voice", `scope=${scope}|state=${newState.status}`);
-  });
+function attachConnectionStateLogger(connection) {
+  if (meetingState.connection === connection && meetingState.connectionStateListener) {
+    return;
+  }
+  if (meetingState.connection && meetingState.connectionStateListener) {
+    meetingState.connection.off("stateChange", meetingState.connectionStateListener);
+    meetingState.connectionStateListener = null;
+  }
+  const listener = (_oldState, newState) => {
+    logBot("INFO", 0, "voice", `state=${newState.status}`);
+  };
+  connection.on("stateChange", listener);
+  meetingState.connection = connection;
+  meetingState.connectionStateListener = listener;
 }
 
 async function waitForVoiceReady(connection, scope) {
@@ -329,7 +344,7 @@ async function startMeeting(client) {
     selfMute: false,
   });
 
-  attachConnectionStateLogger(connection, "start_meeting");
+  attachConnectionStateLogger(connection);
   meetingState.connection = connection;
   logBot("INFO", 0, "meeting", `state=joined|guild=${guild.id}|channel=${channel.id}|voice=${connection.state.status}`);
   return "meeting_started";
@@ -352,7 +367,7 @@ async function startRecording(client) {
     return "recording_already_started";
   }
 
-  attachConnectionStateLogger(connection, "record_start");
+  attachConnectionStateLogger(connection);
   await waitForVoiceReady(connection, "record_start");
   meetingState.sessionId = createSessionId();
   meetingState.isRecording = true;
