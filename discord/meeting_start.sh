@@ -25,7 +25,6 @@ fi
 if [ "$BOT_COUNT" -eq 1 ]; then
   BOT_PID=$(printf "%s\n" "$BOT_PIDS" | awk 'NR==1 {print; exit}')
   echo "$BOT_PID" > "$PID_FILE"
-  echo "$TIMESTAMP|INFO|$ACTION|0|discord_bot|already_running" >> "$LOG_FILE"
 else
   nohup "$NODE_BIN" "$DISCORD_BOT_ENTRYPOINT" >> "$BOT_STDOUT_LOG" 2>&1 &
   BOT_PID=$!
@@ -33,7 +32,6 @@ else
 
   sleep 1
   if kill -0 "$BOT_PID" 2>/dev/null; then
-    echo "$TIMESTAMP|INFO|$ACTION|0|discord_bot|started" >> "$LOG_FILE"
     sleep 2
   else
     echo "$TIMESTAMP|ERROR|$ACTION|30|discord_bot|start_failed" >> "$LOG_FILE"
@@ -44,7 +42,7 @@ fi
 
 if sh "$DISCORD_MEETING_START_SCRIPT"; then
   echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Meeting started\"}"
-  echo "$TIMESTAMP|INFO|$ACTION|0|meeting|started" >> "$LOG_FILE"
+  echo "$TIMESTAMP|INFO|$ACTION|0|meeting|started|pid=$BOT_PID" >> "$LOG_FILE"
 else
   echo "$TIMESTAMP|ERROR|$ACTION|31|meeting|start_failed" >> "$LOG_FILE"
   echo "{\"status\":\"ERROR\",\"action\":\"$ACTION\",\"message\":\"Unable to start Discord meeting\"}"

@@ -12,7 +12,6 @@ const {
   EndBehaviorType,
   VoiceConnectionStatus,
   entersState,
-  generateDependencyReport,
 } = require("@discordjs/voice");
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN || "";
@@ -40,6 +39,9 @@ const meetingState = {
 };
 
 function logBot(level, code, input, details) {
+  if (level !== "ERROR") {
+    return;
+  }
   const ts = new Date().toISOString();
   fs.appendFileSync(LOG_FILE, `${ts}|${level}|discord_bot|${code}|${input}|${details}\n`);
 }
@@ -389,8 +391,6 @@ async function main() {
   requireConfig();
 
   await sodium.ready;
-  const depsReport = generateDependencyReport().replace(/\n/g, " ");
-  logBot("INFO", 0, "deps", depsReport);
 
   const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
