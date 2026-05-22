@@ -13,6 +13,7 @@ PID_FILE=~/Workspace/automation/vars/pids/discord-bot.pid
 BOT_PIDS=$(ps -ax -o pid=,command= | awk -v entrypoint="$DISCORD_BOT_ENTRYPOINT" 'index($0, entrypoint) && $0 !~ /awk/ {print $1}')
 BOT_COUNT=$(printf "%s\n" "$BOT_PIDS" | awk 'NF {c++} END {print c+0}')
 MEETING_STOP_RESULT="ok"
+KILL9_USED="no"
 
 if [ "$BOT_COUNT" -eq 0 ]; then
   rm -f "$PID_FILE"
@@ -28,22 +29,30 @@ else
   MEETING_STOP_RESULT="failed"
 fi
 
-for PID in $BOT_PIDS; do
-  kill "$PID" 2>/dev/null || true
-done
+CURRENT_BOT_PIDS=$(ps -ax -o pid=,command= | awk -v entrypoint="$DISCORD_BOT_ENTRYPOINT" 'index($0, entrypoint) && $0 !~ /awk/ {print $1}')
+CURRENT_COUNT=$(printf "%s\n" "$CURRENT_BOT_PIDS" | awk 'NF {c++} END {print c+0}')
 
-sleep 1
+if [ "$CURRENT_COUNT" -gt 0 ]; then
+  for PID in $CURRENT_BOT_PIDS; do
+    kill "$PID" 2>/dev/null || true
+  done
+fi
 
-for PID in $BOT_PIDS; do
-  if kill -0 "$PID" 2>/dev/null; then
-    kill -9 "$PID" 2>/dev/null || true
-  fi
-done
-
-sleep 1
+sleep 2
 
 REMAINING_BOT_PIDS=$(ps -ax -o pid=,command= | awk -v entrypoint="$DISCORD_BOT_ENTRYPOINT" 'index($0, entrypoint) && $0 !~ /awk/ {print $1}')
 REMAINING_COUNT=$(printf "%s\n" "$REMAINING_BOT_PIDS" | awk 'NF {c++} END {print c+0}')
+
+if [ "$REMAINING_COUNT" -gt 0 ]; then
+  echo "$TIMESTAMP|INFO|$ACTION|0|discord_bot|term_timeout_fallback_kill9" >> "$LOG_FILE"
+  KILL9_USED="yes"
+  for PID in $REMAINING_BOT_PIDS; do
+    kill -9 "$PID" 2>/dev/null || true
+  done
+  sleep 1
+  REMAINING_BOT_PIDS=$(ps -ax -o pid=,command= | awk -v entrypoint="$DISCORD_BOT_ENTRYPOINT" 'index($0, entrypoint) && $0 !~ /awk/ {print $1}')
+  REMAINING_COUNT=$(printf "%s\n" "$REMAINING_BOT_PIDS" | awk 'NF {c++} END {print c+0}')
+fi
 
 if [ "$REMAINING_COUNT" -eq 0 ]; then
   rm -f "$PID_FILE"
@@ -59,6 +68,8 @@ echo "$TIMESTAMP|INFO|$ACTION|0|discord_bot|stopped" >> "$LOG_FILE"
 
 if [ "$MEETING_STOP_RESULT" = "failed" ]; then
   echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Bot stopped, but meeting stop failed\"}"
+elif [ "$KILL9_USED" = "yes" ]; then
+  echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Meeting stopped (forced bot shutdown)\"}"
 else
   echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Meeting stopped\"}"
 fi
