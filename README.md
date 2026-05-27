@@ -74,6 +74,22 @@ These apply to `discord/meeting_*.sh` and `discord/lib/bot.js`.
 
 - Captured speaker files are written as `wav` in `vars/runtime/audios/`.
 
+#### Local transcription
+
+These prerequisites apply to Discord meeting transcription.
+
+Install whisper.cpp CLI on the Mac:
+
+```bash
+brew install whisper-cpp
+```
+
+Download IA model locally
+
+```bash
+curl -L "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin?download=true" -o ~/Workspace/automation/vars/runtime/ggml-large-v3.bin
+```
+
 #### Node.js
 
 - **Node.js LTS** on the Mac (currently **v24.x** Active LTS)
