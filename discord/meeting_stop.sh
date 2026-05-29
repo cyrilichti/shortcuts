@@ -8,13 +8,17 @@ TIMESTAMP=$(date -Iseconds)
 LOG_FILE=~/Workspace/automation/vars/logs/discord.log
 
 DISCORD_MEETING_STOP_SCRIPT=~/Workspace/automation/discord/meeting_stop_bot.sh
+DISCORD_MEETING_TRANSCRIBE_SCRIPT=~/Workspace/automation/discord/meeting_transcribe.sh
 DISCORD_BOT_ENTRYPOINT=~/Workspace/automation/discord/lib/bot.js
 PID_FILE=~/Workspace/automation/vars/pids/discord-bot.pid
+STATUS_FILE=~/Workspace/automation/vars/runtime/discord-status.json
 BOT_PIDS=$(ps -ax -o pid=,command= | awk -v entrypoint="$DISCORD_BOT_ENTRYPOINT" 'index($0, entrypoint) && $0 !~ /awk/ {print $1}')
 BOT_COUNT=$(printf "%s\n" "$BOT_PIDS" | awk 'NF {c++} END {print c+0}')
 STOP_PID_LIST=$(printf "%s" "$BOT_PIDS" | tr '\n' ',' | sed 's/,$//')
 MEETING_STOP_RESULT="ok"
 KILL9_USED="no"
+TRANSCRIPTION_STATUS="skipped"
+TRANSCRIPTION_SESSION_ID=""
 
 if [ "$BOT_COUNT" -eq 0 ]; then
   rm -f "$PID_FILE"
@@ -63,14 +67,33 @@ if [ "$REMAINING_COUNT" -gt 0 ]; then
   exit 41
 fi
 
+if [ "$MEETING_STOP_RESULT" = "ok" ] && [ -f "$STATUS_FILE" ]; then
+  STOP_STATUS_CONTENT=$(<"$STATUS_FILE")
+  case "$STOP_STATUS_CONTENT" in
+    *"\"action\":\"stop\""*"\"status\":\"success\""*"\"recording_was_active\":true"*)
+      TRANSCRIPTION_SESSION_ID=$(printf "%s" "$STOP_STATUS_CONTENT" | sed -n 's/.*"session_id":"\([^"]*\)".*/\1/p')
+      if "$DISCORD_MEETING_TRANSCRIBE_SCRIPT" "$TRANSCRIPTION_SESSION_ID" >/dev/null 2>&1; then
+        TRANSCRIPTION_STATUS="completed"
+        echo "$TIMESTAMP|INFO|$ACTION|0|transcription|completed|session=$TRANSCRIPTION_SESSION_ID" >> "$LOG_FILE"
+      else
+        TRANSCRIPTION_STATUS="failed"
+        echo "$TIMESTAMP|INFO|$ACTION|0|transcription|failed|session=$TRANSCRIPTION_SESSION_ID" >> "$LOG_FILE"
+      fi
+      ;;
+    *)
+      TRANSCRIPTION_STATUS="skipped_not_recording"
+      ;;
+  esac
+fi
+
 if [ "$MEETING_STOP_RESULT" = "failed" ]; then
   echo "$TIMESTAMP|INFO|$ACTION|0|meeting|stopped_with_meeting_stop_failed|pids=$STOP_PID_LIST" >> "$LOG_FILE"
-  echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Bot stopped, but meeting stop failed\"}"
+  echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Bot stopped, but meeting stop failed\",\"transcription\":\"$TRANSCRIPTION_STATUS\"}"
 elif [ "$KILL9_USED" = "yes" ]; then
   echo "$TIMESTAMP|INFO|$ACTION|0|meeting|stopped_forced|pids=$STOP_PID_LIST" >> "$LOG_FILE"
-  echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Meeting stopped (forced bot shutdown)\"}"
+  echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Meeting stopped (forced bot shutdown)\",\"transcription\":\"$TRANSCRIPTION_STATUS\"}"
 else
   echo "$TIMESTAMP|INFO|$ACTION|0|meeting|stopped|pids=$STOP_PID_LIST" >> "$LOG_FILE"
-  echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Meeting stopped\"}"
+  echo "{\"status\":\"SUCCESS\",\"action\":\"$ACTION\",\"message\":\"Meeting stopped\",\"transcription\":\"$TRANSCRIPTION_STATUS\"}"
 fi
 

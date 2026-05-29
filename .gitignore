@@ -6,3 +6,5 @@ vars/runtime/*.json
 vars/runtime/audios/*.opus
 vars/runtime/audios/*.wav
 vars/runtime/transcripts/*.txt
+vars/runtime/transcripts/*.md
+vars/runtime/*.bin

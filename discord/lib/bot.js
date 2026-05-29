@@ -63,7 +63,7 @@ function clearCommand() {
   }
 }
 
-function writeStatus(id, action, status, state, error) {
+function writeStatus(id, action, status, state, error, metadata) {
   const payload = {
     id,
     action,
@@ -71,6 +71,10 @@ function writeStatus(id, action, status, state, error) {
     state,
     timestamp: new Date().toISOString(),
   };
+
+  if (metadata && typeof metadata === "object") {
+    Object.assign(payload, metadata);
+  }
 
   if (error) {
     payload.error = error;
@@ -88,6 +92,14 @@ function requireConfig() {
 
 function sanitizeForFilename(input) {
   return String(input || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+function encodeBase64Url(input) {
+  return Buffer.from(String(input || "unknown"), "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 }
 
 function createSessionId() {
@@ -138,10 +150,11 @@ function stopAudioCapture() {
   meetingState.isRecording = false;
 }
 
-function getSpeakerAudioPath(sessionId, userId) {
+function getSpeakerAudioPath(sessionId, userId, speakerName) {
   const safeSession = sanitizeForFilename(sessionId);
   const safeUser = sanitizeForFilename(userId);
-  return path.join(AUDIO_DIR, `${safeSession}__speaker-${safeUser}.wav`);
+  const safeName = encodeBase64Url(speakerName);
+  return path.join(AUDIO_DIR, `${safeSession}__speaker-${safeUser}__name-${safeName}.wav`);
 }
 
 function buildWavHeader(dataSize) {
@@ -167,12 +180,12 @@ function buildWavHeader(dataSize) {
   return header;
 }
 
-function getOrCreateSpeakerAudioFile(sessionId, userId) {
+function getOrCreateSpeakerAudioFile(sessionId, userId, speakerName) {
   if (meetingState.speakerAudioFiles.has(userId)) {
     return meetingState.speakerAudioFiles.get(userId);
   }
 
-  const filePath = getSpeakerAudioPath(sessionId, userId);
+  const filePath = getSpeakerAudioPath(sessionId, userId, speakerName);
   const fd = fs.openSync(filePath, "w");
   fs.writeSync(fd, buildWavHeader(0), 0, 44, 0);
   const speakerAudioFile = {
@@ -243,7 +256,19 @@ function startSpeakerCapture(receiver, client, userId) {
     return;
   }
 
-  const speakerAudioFile = getOrCreateSpeakerAudioFile(meetingState.sessionId, userId);
+  let speakerName = userId;
+  const guild = client.guilds.cache.get(GUILD_ID);
+  const guildMember = guild ? guild.members.cache.get(userId) : null;
+  if (guildMember) {
+    speakerName = guildMember.displayName || (guildMember.user && guildMember.user.username) || userId;
+  } else {
+    const cachedUser = client.users.cache.get(userId);
+    if (cachedUser && cachedUser.username) {
+      speakerName = cachedUser.username;
+    }
+  }
+
+  const speakerAudioFile = getOrCreateSpeakerAudioFile(meetingState.sessionId, userId, speakerName);
   const opusStream = receiver.subscribe(userId, {
     end: {
       behavior: EndBehaviorType.AfterSilence,
@@ -366,7 +391,10 @@ async function startRecording(client) {
   }
 
   if (meetingState.isRecording) {
-    return "recording_already_started";
+    return {
+      state: "recording_already_started",
+      sessionId: meetingState.sessionId,
+    };
   }
 
   attachConnectionStateLogger(connection);
@@ -375,16 +403,26 @@ async function startRecording(client) {
   meetingState.isRecording = true;
   attachAudioCapture(connection, client);
   logBot("INFO", 0, "audio_capture", `session=${meetingState.sessionId}|state=ready`);
-  return "recording_started";
+  return {
+    state: "recording_started",
+    sessionId: meetingState.sessionId,
+  };
 }
 
 function stopMeeting() {
+  const sessionId = meetingState.sessionId;
+  const recordingWasActive = meetingState.isRecording;
   stopCurrentConnection();
 
   const staleConnection = getVoiceConnection(GUILD_ID);
   if (staleConnection) {
     staleConnection.destroy();
   }
+
+  return {
+    sessionId,
+    recordingWasActive,
+  };
 }
 
 async function main() {
@@ -421,13 +459,23 @@ async function main() {
         writeStatus(cmd.id, cmd.action, "success", meetingStateResult);
         logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=${meetingStateResult}`);
       } else if (cmd.action === "record_start") {
-        const recordingState = await startRecording(client);
-        writeStatus(cmd.id, cmd.action, "success", recordingState);
-        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=${recordingState}`);
+        const recordingResult = await startRecording(client);
+        writeStatus(cmd.id, cmd.action, "success", recordingResult.state, undefined, {
+          session_id: recordingResult.sessionId,
+        });
+        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=${recordingResult.state}|session=${recordingResult.sessionId || "none"}`);
       } else if (cmd.action === "stop") {
-        stopMeeting();
-        writeStatus(cmd.id, cmd.action, "success", "meeting_stopped");
-        logBot("INFO", 0, "command", `cmd_id=${cmd.id}|state=meeting_stopped`);
+        const stopContext = stopMeeting();
+        writeStatus(cmd.id, cmd.action, "success", "meeting_stopped", undefined, {
+          session_id: stopContext.sessionId,
+          recording_was_active: stopContext.recordingWasActive,
+        });
+        logBot(
+          "INFO",
+          0,
+          "command",
+          `cmd_id=${cmd.id}|state=meeting_stopped|recording=${stopContext.recordingWasActive}|session=${stopContext.sessionId || "none"}`,
+        );
       } else {
         writeStatus(cmd.id, cmd.action, "error", "error", "unknown_action");
         logBot("ERROR", 50, "command", `cmd_id=${cmd.id}|state=error|unknown_action`);
