@@ -111,9 +111,9 @@ awk -F '\t' 'NF >= 3 {print $3}' "$SORTED_ENTRIES_FILE" | sort -u > "$PARTICIPAN
 } > "$TRANSCRIPT_FILE"
 
 if [ -s "$ENTRIES_FILE" ]; then
-  while IFS=$'\t' read -r _SEGMENT_EPOCH SEGMENT_LABEL _SPEAKER_NAME SEGMENT_TEXT; do
+  while IFS=$'\t' read -r _SEGMENT_EPOCH SEGMENT_LABEL SPEAKER_NAME SEGMENT_TEXT; do
     {
-      printf "### [%s]\n" "$SEGMENT_LABEL"
+      printf "### [%s] %s\n" "$SEGMENT_LABEL" "$SPEAKER_NAME"
       printf "%s\n\n" "$SEGMENT_TEXT"
     } >> "$TRANSCRIPT_FILE"
   done < "$SORTED_ENTRIES_FILE"
