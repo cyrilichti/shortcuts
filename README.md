@@ -68,15 +68,7 @@ So I combined:
 - iPhone Shortcuts + SSH to the Mac execution unit
 - `config/env.sh` configured from `config/env.example.sh`
 
-### Discord meeting bot (capture audio)
-
-These apply to `discord/meeting_*.sh` and `discord/lib/bot.js`.
-
-- Captured speaker files are written as `wav` in `vars/runtime/audios/`.
-
-#### Local transcription
-
-These prerequisites apply to Discord meeting transcription.
+### Discord meeting
 
 Install whisper.cpp CLI on the Mac:
 
@@ -88,6 +80,16 @@ Download IA model locally
 
 ```bash
 curl -L "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin?download=true" -o ~/Workspace/automation/vars/runtime/ggml-large-v3.bin
+```
+
+#### Meeting summary (Cursor API)
+
+Required for the summary step when a meeting was started with **record**.
+
+Install the Cursor CLI on the Mac:
+
+```bash
+brew install jq
 ```
 
 #### Node.js
@@ -130,6 +132,7 @@ Required variables:
 - `CLICKUP_INBOX_ID`: ClickUp List ID used by `clickup/inbox_add.sh`.
 - `CLICKUP_INBOX_PATH`: ClickUp inbox path appended to `CLICKUP_BASE_URL` by `clickup/inbox_open.sh`.
 - `DISCORD_BOT_TOKEN`: Discord bot token from Discord Developer Portal.
+- `CURSOR_API_KEY`: Cursor API key for `discord/meeting_summarize.sh` over SSH.
 - `DISCORD_MEETING_GUILD_ID`: Discord server (guild) ID where the bot operates.
 - `DISCORD_MEETING_VOICE_CHANNEL_ID`: Voice channel ID used for meeting start/stop actions.
 
@@ -176,8 +179,8 @@ Prioritized by ROI: frequency, time saved, implementation effort, and risk.
 - [x] Open a specific ClickUp backlog
 - [x] Start/stop a Discord meeting bot session
 - [x] Record a Discord meeting audio
-- [ ] Transcribe a recorded meeting
-- [ ] Summarize a meeting transcript
+- [x] Transcribe a recorded meeting
+- [x] Summarize a meeting transcript
 - [ ] Notify teammates on Rocket.Chat when meeting starts
 - [ ] Prepare a meeting workspace (Discord, ClickUp, browser, window layout)
 - [ ] Convert Os ticket task into clickup task
