@@ -1,4 +1,4 @@
-# Personal Automation
+# Shortcuts
 
 A personal automation layer designed to reduce cognitive load and execution friction for daily workflows.
 
@@ -6,11 +6,10 @@ A personal automation layer designed to reduce cognitive load and execution fric
 
 ## Stack (layers)
 
-- **Interface**: iPhone Shortcuts
+- **Interface**: iPhone Shortcuts (trigger + UI)
 - **Transport**: SSH
-- **Execution unit**: macOS
-- **Logic**: shell scripts
-- **Targets**: external APIs (ClickUp, Git, etc.)
+- **Execution**: macOS + shell scripts
+- **Targets**: external APIs (ClickUp, Git, Discord, etc.)
 
 ---
 
@@ -79,7 +78,7 @@ brew install whisper-cpp
 Download IA model locally
 
 ```bash
-curl -L "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin?download=true" -o ~/Workspace/automation/vars/runtime/ggml-large-v3.bin
+curl -L "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin?download=true" -o ~/Workspace/shortcuts/vars/runtime/ggml-large-v3.bin
 ```
 
 #### Meeting summary (Cursor API)
@@ -103,7 +102,7 @@ Install or upgrade with Homebrew:
 Install once after cloning or pulling dependency changes:
 
 ```bash
-cd ~/Workspace/automation
+cd ~/Workspace/shortcuts
 npm install
 ```
 
@@ -153,19 +152,18 @@ Required variables:
 ## Design principles
 
 - Minimal cognitive friction
-- One action = one intent
+- One SSH trigger = one intent
 - No UI navigation required for frequent tasks
-- Secrets stay on the Mac
-- iPhone acts only as a trigger layer
+- iPhone is trigger + UI only; Mac executes
+- Secrets stay on the Mac (`config/env.sh`), never in Shortcuts / iCloud
 
 ---
 
 ## Security
 
-- No credentials stored in iCloud
-- No secrets in Shortcuts
-- Execution handled locally on trusted machine
-- SSH used as secure transport layer
+- No secrets on the iPhone or in the repo
+- Execution on a trusted local Mac
+- SSH as the secure transport layer
 
 ---
 
