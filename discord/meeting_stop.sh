@@ -1,18 +1,18 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/automation/config/env.sh
+source ~/Workspace/shortcuts/config/env.sh
 
 ACTION="meeting_stop"
 TIMESTAMP=$(date -Iseconds)
-LOG_FILE=~/Workspace/automation/vars/logs/discord.log
+LOG_FILE=~/Workspace/shortcuts/vars/logs/discord.log
 
-DISCORD_MEETING_STOP_SCRIPT=~/Workspace/automation/discord/meeting_stop_bot.sh
-DISCORD_MEETING_TRANSCRIBE_SCRIPT=~/Workspace/automation/discord/meeting_transcribe.sh
-DISCORD_MEETING_SUMMARIZE_SCRIPT=~/Workspace/automation/discord/meeting_summarize.sh
-DISCORD_BOT_ENTRYPOINT=~/Workspace/automation/discord/lib/bot.js
-PID_FILE=~/Workspace/automation/vars/pids/discord-bot.pid
-STATUS_FILE=~/Workspace/automation/vars/runtime/discord-status.json
+DISCORD_MEETING_STOP_SCRIPT=~/Workspace/shortcuts/discord/meeting_stop_bot.sh
+DISCORD_MEETING_TRANSCRIBE_SCRIPT=~/Workspace/shortcuts/discord/meeting_transcribe.sh
+DISCORD_MEETING_SUMMARIZE_SCRIPT=~/Workspace/shortcuts/discord/meeting_summarize.sh
+DISCORD_BOT_ENTRYPOINT=~/Workspace/shortcuts/discord/lib/bot.js
+PID_FILE=~/Workspace/shortcuts/vars/pids/discord-bot.pid
+STATUS_FILE=~/Workspace/shortcuts/vars/runtime/discord-status.json
 BOT_PIDS=$(ps -ax -o pid=,command= | awk -v entrypoint="$DISCORD_BOT_ENTRYPOINT" 'index($0, entrypoint) && $0 !~ /awk/ {print $1}')
 BOT_COUNT=$(printf "%s\n" "$BOT_PIDS" | awk 'NF {c++} END {print c+0}')
 STOP_PID_LIST=$(printf "%s" "$BOT_PIDS" | tr '\n' ',' | sed 's/,$//')

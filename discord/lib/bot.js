@@ -19,11 +19,11 @@ const GUILD_ID = process.env.DISCORD_MEETING_GUILD_ID || "";
 const VOICE_CHANNEL_ID = process.env.DISCORD_MEETING_VOICE_CHANNEL_ID || "";
 const HOME_DIR = os.homedir();
 
-const RUNTIME_DIR = path.join(HOME_DIR, "Workspace/automation/vars/runtime");
+const RUNTIME_DIR = path.join(HOME_DIR, "Workspace/shortcuts/vars/runtime");
 const AUDIO_DIR = path.join(RUNTIME_DIR, "audios");
 const COMMAND_FILE = path.join(RUNTIME_DIR, "discord-command.json");
 const STATUS_FILE = path.join(RUNTIME_DIR, "discord-status.json");
-const LOG_FILE = path.join(HOME_DIR, "Workspace/automation/vars/logs/discord.log");
+const LOG_FILE = path.join(HOME_DIR, "Workspace/shortcuts/vars/logs/discord.log");
 const AUDIO_SAMPLE_RATE = 48000;
 const AUDIO_CHANNELS = 2;
 const AUDIO_BITS_PER_SAMPLE = 16;
