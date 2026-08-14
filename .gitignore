@@ -8,3 +8,27 @@ vars/runtime/audios/*.wav
 vars/runtime/transcripts/*.txt
 vars/runtime/transcripts/*.md
 vars/runtime/*.bin
+
+# Agentic Workflow
+.cursor/mcp.json
+plans/*
+.agents/skills/*
+!.agents/skills/README.md
+!.agents/skills/agent-workflows/
+!.agents/skills/agent-workflows/**
+!.agents/skills/pick/
+!.agents/skills/pick/**
+!.agents/skills/plan/
+!.agents/skills/plan/**
+!.agents/skills/write/
+!.agents/skills/write/**
+!.agents/skills/refine/
+!.agents/skills/refine/**
+!.agents/skills/work/
+!.agents/skills/work/**
+!.agents/skills/ready/
+!.agents/skills/ready/**
+!.agents/skills/inspect/
+!.agents/skills/inspect/**
+!.agents/skills/done/
+!.agents/skills/done/**
