@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/automation/config/env.sh
+source ~/Workspace/shortcuts/config/env.sh
 
 ACTION="meeting_transcribe"
 TIMESTAMP=$(date -Iseconds)
-LOG_FILE=~/Workspace/automation/vars/logs/discord.log
-AUDIO_DIR=~/Workspace/automation/vars/runtime/audios
-TRANSCRIPTS_DIR=~/Workspace/automation/vars/runtime/transcripts
+LOG_FILE=~/Workspace/shortcuts/vars/logs/discord.log
+AUDIO_DIR=~/Workspace/shortcuts/vars/runtime/audios
+TRANSCRIPTS_DIR=~/Workspace/shortcuts/vars/runtime/transcripts
 WHISPER_BIN=~/homebrew/bin/whisper-cli
-WHISPER_MODEL=~/Workspace/automation/vars/runtime/ggml-large-v3.bin
+WHISPER_MODEL=~/Workspace/shortcuts/vars/runtime/ggml-large-v3.bin
 WHISPER_LANGUAGE=fr
-SRT_PARSER_AWK=~/Workspace/automation/discord/lib/parse_srt.awk
+SRT_PARSER_AWK=~/Workspace/shortcuts/discord/lib/parse_srt.awk
 
 SESSION_ID="${1:-}"
 SESSION_START_NO_MS="${SESSION_ID%Z}"

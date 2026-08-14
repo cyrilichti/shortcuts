@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/automation/config/env.sh
+source ~/Workspace/shortcuts/config/env.sh
 
 ACTION="meeting_summarize"
 TIMESTAMP=$(date -Iseconds)
-LOG_FILE=~/Workspace/automation/vars/logs/discord.log
-TRANSCRIPTS_DIR=~/Workspace/automation/vars/runtime/transcripts
-SUMMARIZE_PROMPT_FILE=~/Workspace/automation/discord/lib/meeting_summarize.prompt
+LOG_FILE=~/Workspace/shortcuts/vars/logs/discord.log
+TRANSCRIPTS_DIR=~/Workspace/shortcuts/vars/runtime/transcripts
+SUMMARIZE_PROMPT_FILE=~/Workspace/shortcuts/discord/lib/meeting_summarize.prompt
 CURSOR_API_BASE=https://api.cursor.com
 CURSOR_MODEL=default
 

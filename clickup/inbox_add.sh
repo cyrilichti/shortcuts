@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/automation/config/env.sh
+source ~/Workspace/shortcuts/config/env.sh
 
 ACTION="inbox_add"
 TIMESTAMP=$(date -Iseconds)
-LOG_FILE=~/Workspace/automation/vars/logs/clickup.log
+LOG_FILE=~/Workspace/shortcuts/vars/logs/clickup.log
 TASK_TITLE="$1"
 PRIORITY_TEXT="$2"
 

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-RUNTIME_DIR=~/Workspace/automation/vars/runtime
+RUNTIME_DIR=~/Workspace/shortcuts/vars/runtime
 COMMAND_FILE="$RUNTIME_DIR/discord-command.json"
 STATUS_FILE="$RUNTIME_DIR/discord-status.json"
 TIMEOUT_SECONDS=20

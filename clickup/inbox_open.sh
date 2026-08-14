@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/automation/config/env.sh
+source ~/Workspace/shortcuts/config/env.sh
 
 ACTION="inbox_open"
 TIMESTAMP=$(date -Iseconds)
-LOG_FILE=~/Workspace/automation/vars/logs/clickup.log
+LOG_FILE=~/Workspace/shortcuts/vars/logs/clickup.log
 CLICKUP_INBOX_URL="$CLICKUP_BASE_URL/$CLICKUP_INBOX_PATH"
 
 if open "$CLICKUP_INBOX_URL"; then

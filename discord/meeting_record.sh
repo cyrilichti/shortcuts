@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/automation/config/env.sh
+source ~/Workspace/shortcuts/config/env.sh
 
 ACTION="meeting_record"
 TIMESTAMP=$(date -Iseconds)
-LOG_FILE=~/Workspace/automation/vars/logs/discord.log
-MEETING_START_SCRIPT=~/Workspace/automation/discord/meeting_start.sh
-MEETING_RECORD_BOT_SCRIPT=~/Workspace/automation/discord/meeting_record_bot.sh
+LOG_FILE=~/Workspace/shortcuts/vars/logs/discord.log
+MEETING_START_SCRIPT=~/Workspace/shortcuts/discord/meeting_start.sh
+MEETING_RECORD_BOT_SCRIPT=~/Workspace/shortcuts/discord/meeting_record_bot.sh
 
 START_OUTPUT=$("$MEETING_START_SCRIPT" 2>&1)
 START_EXIT_CODE=$?
