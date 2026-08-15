@@ -131,7 +131,7 @@ Required variables:
 - `DISCORD_BOT_TOKEN`: Discord bot token from Discord Developer Portal.
 - `CURSOR_API_KEY`: Cursor API key for `discord/meeting_summarize.sh` over SSH.
 - `DISCORD_MEETING_GUILD_ID`: Discord server (guild) ID where the bot operates.
-- `DISCORD_MEETING_VOICE_CHANNEL_ID`: Voice channel ID used for meeting start/stop actions.
+- `DISCORD_MEETING_VOICE_CHANNEL_ID`: Voice channel ID used for meeting record/stop actions.
 
 ---
 
@@ -170,8 +170,8 @@ Required variables:
 Prioritized by ROI: frequency, time saved, implementation effort, and risk.
 
 - [x] Create a quick ClickUp inbox task
-- [x] Start/stop a Discord meeting bot session
-- [x] Record a Discord meeting audio
+- [x] Record a Discord meeting (join + record as sole entry)
+- [x] Stop a Discord meeting session
 - [x] Transcribe a recorded meeting
 - [x] Summarize a meeting transcript
 - [ ] Notify teammates on Rocket.Chat when meeting starts

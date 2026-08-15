@@ -1,9 +1,12 @@
 #!/bin/bash
 
+# Internal helper: ensure the Discord bot is up and joined.
+# Not an SSH/shortcut entry — called by meeting_record.sh only.
+
 # shellcheck source=/dev/null
 source ~/Workspace/shortcuts/config/env.sh
 
-ACTION="meeting_start"
+ACTION="meeting_ensure_started"
 TIMESTAMP=$(date -Iseconds)
 LOG_FILE=~/Workspace/shortcuts/vars/logs/discord.log
 
@@ -48,4 +51,3 @@ else
   echo "{\"status\":\"ERROR\",\"action\":\"$ACTION\",\"message\":\"Unable to start Discord meeting\"}"
   exit 31
 fi
-

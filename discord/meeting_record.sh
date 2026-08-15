@@ -6,10 +6,10 @@ source ~/Workspace/shortcuts/config/env.sh
 ACTION="meeting_record"
 TIMESTAMP=$(date -Iseconds)
 LOG_FILE=~/Workspace/shortcuts/vars/logs/discord.log
-MEETING_START_SCRIPT=~/Workspace/shortcuts/discord/meeting_start.sh
+ENSURE_MEETING_STARTED_SCRIPT=~/Workspace/shortcuts/discord/lib/ensure_meeting_started.sh
 MEETING_RECORD_BOT_SCRIPT=~/Workspace/shortcuts/discord/meeting_record_bot.sh
 
-START_OUTPUT=$("$MEETING_START_SCRIPT" 2>&1)
+START_OUTPUT=$("$ENSURE_MEETING_STARTED_SCRIPT" 2>&1)
 START_EXIT_CODE=$?
 
 if [ "$START_EXIT_CODE" -ne 0 ]; then
