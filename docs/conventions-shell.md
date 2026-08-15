@@ -12,7 +12,7 @@ The iPhone is the UI + validation layer. The Mac is the execution layer.
 - **No over-validation**: the iPhone Shortcut already validated inputs.
   - Scripts assume local env/config is already correct and should not duplicate config checks.
 - **Stable output contract**: stdout is a machine interface for the iPhone.
-- **Secrets stay on the Mac**: scripts load secrets locally (env files) and never print them.
+- **Secrets stay on the Mac**: host env only; scripts never print them.
 - **Fast + deterministic**: scripts should be quick; avoid interactive prompts.
 
 ---
@@ -24,7 +24,7 @@ The iPhone is the UI + validation layer. The Mac is the execution layer.
 - Logs:
   - `vars/logs/<workflow>.log` (see `docs/logging.md`)
 - Config:
-  - `config/env.sh` (ignored by git)
+  - `config/env.example.sh` (required variable names; secrets stay outside the repo)
 
 ---
 
@@ -37,7 +37,11 @@ The iPhone is the UI + validation layer. The Mac is the execution layer.
 
 ### Environment variables
 
-- Load secrets via `source config/env.sh` (local only).
+- Required names live in `config/env.example.sh`. Secrets stay outside the repo
+  in the host environment (see [dotfiles](https://github.com/cyrilichti/dotfiles)
+  for one loading approach).
+- Scripts assume those variables are already present. They must not `source` a
+  repo-local secrets file.
 - Prefer explicit names per integration: `CLICKUP_TOKEN`, `CLICKUP_INBOX_ID`, etc.
 - Environment values must be canonical and ready to use. Scripts should not normalize or repair them.
   - Example: base URLs have no trailing slash, paths have no leading slash.
@@ -123,9 +127,9 @@ If not possible, ensure the iPhone Shortcut makes retries explicit.
 
 ## Validation boundary
 
-The iPhone Shortcut is the validation/UI layer, and `config/env.example.sh` documents required local configuration.
+The iPhone Shortcut is the validation/UI layer. `config/env.example.sh` lists required variable names; secrets stay in the host environment.
 
-Scripts should **not** add environment variable presence checks. They assume the local Mac is configured correctly via `config/env.sh`.
+Scripts should **not** add environment variable presence checks. They assume the Mac process environment is already configured.
 
 Keep scripts focused on one action, avoid duplicating UI validation, and avoid echoing raw payloads that might contain secrets.
 

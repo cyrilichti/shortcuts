@@ -1,4 +1,7 @@
 # shellcheck shell=bash
+#
+# Required export names for this repo (no secrets). Provide values in the host
+# environment — see README Configuration.
 
 # clickup/inbox_add.sh
 export CLICKUP_TOKEN=""

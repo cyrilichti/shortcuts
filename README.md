@@ -65,7 +65,7 @@ So I combined:
 ### macOS (all workflows)
 
 - iPhone Shortcuts + SSH to the Mac execution unit
-- `config/env.sh` configured from `config/env.example.sh`
+- Required env vars available in the Mac process environment (names in `config/env.example.sh`)
 
 ### Discord meeting
 
@@ -117,12 +117,9 @@ npm install
 
 ## Configuration
 
-Copy and configure environment variables:
-
-```bash
-cp config/env.example.sh config/env.sh
-source config/env.sh
-```
+Scripts expect required variables already in the process environment. Names are
+listed in `config/env.example.sh`. Keep secrets outside this repo (host env;
+see [dotfiles](https://github.com/cyrilichti/dotfiles) for one way to load them).
 
 Required variables:
 
@@ -139,7 +136,7 @@ Required variables:
 
 - Enable Developer Mode in Discord (`User Settings -> Advanced`).
 - In [Discord Developer Portal](https://discord.com/developers/applications), create an application and a bot.
-- Copy bot token to `DISCORD_BOT_TOKEN` in `config/env.sh`.
+- Copy bot token into host env as `DISCORD_BOT_TOKEN` (see Configuration).
 - Invite the bot with scope `bot` and permissions `View Channels`, `Connect` (optional `Speak`).
 - Copy server ID and voice channel ID into:
   - `DISCORD_MEETING_GUILD_ID`
@@ -153,7 +150,7 @@ Required variables:
 - One SSH trigger = one intent
 - No UI navigation required for frequent tasks
 - iPhone is trigger + UI only; Mac executes
-- Secrets stay on the Mac (`config/env.sh`), never in Shortcuts / iCloud
+- Secrets stay on the Mac (host env), never in Shortcuts / iCloud
 
 ---
 
