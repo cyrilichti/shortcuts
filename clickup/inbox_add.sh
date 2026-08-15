@@ -37,7 +37,7 @@ PAYLOAD=$(printf '{"name":"%s","priority":%s,"start_date":"%s","start_date_time"
 
 RESPONSE=$(curl -s -w "\n%{http_code}" \
   -X POST "$CLICKUP_API_BASE_URL/api/v2/list/$CLICKUP_INBOX_ID/task" \
-  -H "Authorization: $CLICKUP_TOKEN" \
+  -H "Authorization: $API_CLICKUP_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD")
 

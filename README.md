@@ -120,9 +120,9 @@ npm install
 
 **Secrets** (host env only, not in this repo — see [dotfiles](https://github.com/cyrilichti/dotfiles)):
 
-- `CLICKUP_TOKEN`
-- `DISCORD_BOT_TOKEN`
-- `CURSOR_API_KEY`
+- `API_CLICKUP_TOKEN`
+- `BOT_DISCORD_TOKEN`
+- `API_CURSOR_TOKEN`
 
 **Config** (`config/app.sh`, tracked):
 
@@ -133,13 +133,17 @@ Workflow SSH entry points load `config/app.sh` when they need non-secret
 config (helpers inherit the exported env). A later routing façade can own
 that load. Scripts never source a repo-local secrets file.
 
+SSH from Shortcuts is often non-interactive and may skip `.zshrc`: run with a
+login shell (`zsh -lc '…'`) or export secrets via `launchctl setenv` so the
+remote process inherits them.
+
 ---
 
 ## Discord bot setup
 
 - Enable Developer Mode in Discord (`User Settings -> Advanced`).
 - In [Discord Developer Portal](https://discord.com/developers/applications), create an application and a bot.
-- Copy bot token into host secrets as `DISCORD_BOT_TOKEN`.
+- Copy bot token into host secrets as `BOT_DISCORD_TOKEN`.
 - Invite the bot with scope `bot` and permissions `View Channels`, `Connect` (optional `Speak`).
 - Set server and voice channel IDs in `config/app.sh`:
   - `DISCORD_MEETING_GUILD_ID`

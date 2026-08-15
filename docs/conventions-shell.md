@@ -40,13 +40,14 @@ The iPhone is the UI + validation layer. The Mac is the execution layer.
 
 - Secrets stay in the host environment (see
   [dotfiles](https://github.com/cyrilichti/dotfiles) for one loading approach):
-  `CLICKUP_TOKEN`, `DISCORD_BOT_TOKEN`, `CURSOR_API_KEY`.
+  `API_CLICKUP_TOKEN`, `BOT_DISCORD_TOKEN`, `API_CURSOR_TOKEN`.
 - Non-secret app config lives in `config/app.sh`. SSH entry points may `source`
   that file; helpers inherit exported vars. They must not source a repo-local
   secrets file.
-- Prefer explicit names per integration: `CLICKUP_TOKEN`, `CLICKUP_INBOX_ID`, etc.
+- Prefer explicit names per integration: `API_CLICKUP_TOKEN`, `CLICKUP_INBOX_ID`, etc.
 - Environment values must be canonical and ready to use. Scripts should not normalize or repair them.
   - Example: base URLs have no trailing slash, paths have no leading slash.
+- Non-interactive SSH may skip `.zshrc`; use `zsh -lc '…'` or `launchctl setenv` so secrets are inherited.
 
 ---
 

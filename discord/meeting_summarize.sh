@@ -40,7 +40,7 @@ jq -n --rawfile text "$PROMPT_TMP" --arg model "$CURSOR_MODEL" '{prompt:{text:$t
 
 echo "$TIMESTAMP|INFO|$ACTION|0|summary|running|session=$SESSION_ID|backend=cursor_api" >> "$LOG_FILE"
 
-CREATE_RESPONSE=$(curl -s -H "Authorization: Bearer $CURSOR_API_KEY" -H "Content-Type: application/json" -d @"$REQUEST_TMP" "$CURSOR_API_BASE/v1/agents")
+CREATE_RESPONSE=$(curl -s -H "Authorization: Bearer $API_CURSOR_TOKEN" -H "Content-Type: application/json" -d @"$REQUEST_TMP" "$CURSOR_API_BASE/v1/agents")
 AGENT_ID=$(printf '%s' "$CREATE_RESPONSE" | jq -r '.agent.id // empty')
 RUN_ID=$(printf '%s' "$CREATE_RESPONSE" | jq -r '.run.id // empty')
 
@@ -53,7 +53,7 @@ if [ -z "$AGENT_ID" ] || [ -z "$RUN_ID" ]; then
 fi
 
 while [ "$POLL_COUNT" -lt "$POLL_MAX" ]; do
-  RUN_RESPONSE=$(curl -s -H "Authorization: Bearer $CURSOR_API_KEY" "$CURSOR_API_BASE/v1/agents/$AGENT_ID/runs/$RUN_ID")
+  RUN_RESPONSE=$(curl -s -H "Authorization: Bearer $API_CURSOR_TOKEN" "$CURSOR_API_BASE/v1/agents/$AGENT_ID/runs/$RUN_ID")
   RUN_STATUS=$(printf '%s' "$RUN_RESPONSE" | jq -r '.status // empty')
   case "$RUN_STATUS" in
     FINISHED)
