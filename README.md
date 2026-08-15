@@ -65,7 +65,8 @@ So I combined:
 ### macOS (all workflows)
 
 - iPhone Shortcuts + SSH to the Mac execution unit
-- `config/env.sh` configured from `config/env.example.sh`
+- Host secrets for tokens/keys (see Configuration)
+- Non-secret app config in `config/app.sh`
 
 ### Discord meeting
 
@@ -117,21 +118,24 @@ npm install
 
 ## Configuration
 
-Copy and configure environment variables:
+Entry points `source config/app.sh`.
 
-```bash
-cp config/env.example.sh config/env.sh
-source config/env.sh
-```
+**Host secrets** (required in the environment — see [dotfiles](https://github.com/cyrilichti/dotfiles)):
 
-Required variables:
+- `API_CLICKUP_TOKEN`
+- `BOT_DISCORD_TOKEN`
+- `API_CURSOR_TOKEN`
 
-- `CLICKUP_TOKEN`: ClickUp API token used by task creation scripts.
-- `CLICKUP_INBOX_ID`: ClickUp List ID used by `clickup/inbox_add.sh`.
-- `DISCORD_BOT_TOKEN`: Discord bot token from Discord Developer Portal.
-- `CURSOR_API_KEY`: Cursor API key for `discord/meeting_summarize.sh` over SSH.
-- `DISCORD_MEETING_GUILD_ID`: Discord server (guild) ID where the bot operates.
-- `DISCORD_MEETING_VOICE_CHANNEL_ID`: Voice channel ID used for meeting record/stop actions.
+**Constants** (set in `config/app.sh`):
+
+- `API_CLICKUP_BASE_URL`
+- `CLICKUP_BASE_URL`
+- `CLICKUP_INBOX_ID`
+- `CLICKUP_INBOX_PATH`
+- `BOT_DISCORD_GUILD_ID`
+- `BOT_DISCORD_VOICE_CHANNEL_ID`
+
+Non-interactive SSH: `zsh -lc '…'` or `launchctl setenv` so secrets are inherited.
 
 ---
 
@@ -139,11 +143,11 @@ Required variables:
 
 - Enable Developer Mode in Discord (`User Settings -> Advanced`).
 - In [Discord Developer Portal](https://discord.com/developers/applications), create an application and a bot.
-- Copy bot token to `DISCORD_BOT_TOKEN` in `config/env.sh`.
+- Copy bot token into host secrets as `BOT_DISCORD_TOKEN`.
 - Invite the bot with scope `bot` and permissions `View Channels`, `Connect` (optional `Speak`).
-- Copy server ID and voice channel ID into:
-  - `DISCORD_MEETING_GUILD_ID`
-  - `DISCORD_MEETING_VOICE_CHANNEL_ID`
+- Set server and voice channel IDs in `config/app.sh`:
+  - `BOT_DISCORD_GUILD_ID`
+  - `BOT_DISCORD_VOICE_CHANNEL_ID`
 
 ---
 
@@ -153,7 +157,7 @@ Required variables:
 - One SSH trigger = one intent
 - No UI navigation required for frequent tasks
 - iPhone is trigger + UI only; Mac executes
-- Secrets stay on the Mac (`config/env.sh`), never in Shortcuts / iCloud
+- Secrets stay on the Mac (host env), never in Shortcuts / iCloud
 
 ---
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/shortcuts/config/env.sh
+source ~/Workspace/shortcuts/config/app.sh
 
 ACTION="meeting_record"
 TIMESTAMP=$(date -Iseconds)

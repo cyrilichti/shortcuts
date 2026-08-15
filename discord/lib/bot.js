@@ -14,9 +14,9 @@ const {
   entersState,
 } = require("@discordjs/voice");
 
-const TOKEN = process.env.DISCORD_BOT_TOKEN || "";
-const GUILD_ID = process.env.DISCORD_MEETING_GUILD_ID || "";
-const VOICE_CHANNEL_ID = process.env.DISCORD_MEETING_VOICE_CHANNEL_ID || "";
+const TOKEN = process.env.BOT_DISCORD_TOKEN || "";
+const GUILD_ID = process.env.BOT_DISCORD_GUILD_ID || "";
+const VOICE_CHANNEL_ID = process.env.BOT_DISCORD_VOICE_CHANNEL_ID || "";
 const HOME_DIR = os.homedir();
 
 const RUNTIME_DIR = path.join(HOME_DIR, "Workspace/shortcuts/vars/runtime");

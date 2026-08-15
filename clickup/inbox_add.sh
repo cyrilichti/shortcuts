@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # shellcheck source=/dev/null
-source ~/Workspace/shortcuts/config/env.sh
+source ~/Workspace/shortcuts/config/app.sh
 
 ACTION="inbox_add"
 TIMESTAMP=$(date -Iseconds)
@@ -36,8 +36,8 @@ esac
 PAYLOAD=$(printf '{"name":"%s","priority":%s,"start_date":"%s","start_date_time":true,"due_date":"%s","due_date_time":true}' "$TASK_TITLE" "$CLICKUP_PRIORITY" "$START_DATE_MS" "$DUE_DATE_MS")
 
 RESPONSE=$(curl -s -w "\n%{http_code}" \
-  -X POST "https://api.clickup.com/api/v2/list/$CLICKUP_INBOX_ID/task" \
-  -H "Authorization: $CLICKUP_TOKEN" \
+  -X POST "$API_CLICKUP_BASE_URL/api/v2/list/$CLICKUP_INBOX_ID/task" \
+  -H "Authorization: $API_CLICKUP_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD")
 

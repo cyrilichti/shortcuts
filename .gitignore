@@ -1,4 +1,6 @@
+# Ignore accidental local secrets files (secrets belong in host env)
 env.sh
+*.env
 node_modules/
 vars/logs/*.log
 vars/pids/*.pid
