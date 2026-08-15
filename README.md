@@ -118,24 +118,24 @@ npm install
 
 ## Configuration
 
-**Secrets** (host env only, not in this repo — see [dotfiles](https://github.com/cyrilichti/dotfiles)):
+Entry points `source config/app.sh`.
+
+**Host secrets** (required in the environment — see [dotfiles](https://github.com/cyrilichti/dotfiles)):
 
 - `API_CLICKUP_TOKEN`
 - `BOT_DISCORD_TOKEN`
 - `API_CURSOR_TOKEN`
 
-**Config** (`config/app.sh`, tracked):
+**Constants** (set in `config/app.sh`):
 
-- ClickUp API/base URLs, inbox id/path
-- `DISCORD_MEETING_GUILD_ID`, `DISCORD_MEETING_VOICE_CHANNEL_ID` (fill locally if empty)
+- `CLICKUP_API_BASE_URL`
+- `CLICKUP_BASE_URL`
+- `CLICKUP_INBOX_ID`
+- `CLICKUP_INBOX_PATH`
+- `DISCORD_MEETING_GUILD_ID`
+- `DISCORD_MEETING_VOICE_CHANNEL_ID`
 
-Workflow SSH entry points load `config/app.sh` when they need non-secret
-config (helpers inherit the exported env). A later routing façade can own
-that load. Scripts never source a repo-local secrets file.
-
-SSH from Shortcuts is often non-interactive and may skip `.zshrc`: run with a
-login shell (`zsh -lc '…'`) or export secrets via `launchctl setenv` so the
-remote process inherits them.
+Non-interactive SSH: `zsh -lc '…'` or `launchctl setenv` so secrets are inherited.
 
 ---
 
