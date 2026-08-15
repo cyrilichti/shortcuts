@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# shellcheck source=/dev/null
+source ~/Workspace/shortcuts/config/app.sh
+
 ACTION="meeting_record"
 TIMESTAMP=$(date -Iseconds)
 LOG_FILE=~/Workspace/shortcuts/vars/logs/discord.log

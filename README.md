@@ -65,7 +65,8 @@ So I combined:
 ### macOS (all workflows)
 
 - iPhone Shortcuts + SSH to the Mac execution unit
-- Required env vars available in the Mac process environment (names in `config/env.example.sh`)
+- Host secrets for tokens/keys (see Configuration)
+- Non-secret app config in `config/app.sh`
 
 ### Discord meeting
 
@@ -117,18 +118,20 @@ npm install
 
 ## Configuration
 
-Scripts expect required variables already in the process environment. Names are
-listed in `config/env.example.sh`. Keep secrets outside this repo (host env;
-see [dotfiles](https://github.com/cyrilichti/dotfiles) for one way to load them).
+**Secrets** (host env only, not in this repo — see [dotfiles](https://github.com/cyrilichti/dotfiles)):
 
-Required variables:
+- `CLICKUP_TOKEN`
+- `DISCORD_BOT_TOKEN`
+- `CURSOR_API_KEY`
 
-- `CLICKUP_TOKEN`: ClickUp API token used by task creation scripts.
-- `CLICKUP_INBOX_ID`: ClickUp List ID used by `clickup/inbox_add.sh`.
-- `DISCORD_BOT_TOKEN`: Discord bot token from Discord Developer Portal.
-- `CURSOR_API_KEY`: Cursor API key for `discord/meeting_summarize.sh` over SSH.
-- `DISCORD_MEETING_GUILD_ID`: Discord server (guild) ID where the bot operates.
-- `DISCORD_MEETING_VOICE_CHANNEL_ID`: Voice channel ID used for meeting record/stop actions.
+**Config** (`config/app.sh`, tracked):
+
+- ClickUp API/base URLs, inbox id/path
+- `DISCORD_MEETING_GUILD_ID`, `DISCORD_MEETING_VOICE_CHANNEL_ID` (fill locally if empty)
+
+Workflow SSH entry points load `config/app.sh` when they need non-secret
+config (helpers inherit the exported env). A later routing façade can own
+that load. Scripts never source a repo-local secrets file.
 
 ---
 
@@ -136,9 +139,9 @@ Required variables:
 
 - Enable Developer Mode in Discord (`User Settings -> Advanced`).
 - In [Discord Developer Portal](https://discord.com/developers/applications), create an application and a bot.
-- Copy bot token into host env as `DISCORD_BOT_TOKEN` (see Configuration).
+- Copy bot token into host secrets as `DISCORD_BOT_TOKEN`.
 - Invite the bot with scope `bot` and permissions `View Channels`, `Connect` (optional `Speak`).
-- Copy server ID and voice channel ID into:
+- Set server and voice channel IDs in `config/app.sh`:
   - `DISCORD_MEETING_GUILD_ID`
   - `DISCORD_MEETING_VOICE_CHANNEL_ID`
 
