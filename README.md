@@ -127,9 +127,7 @@ source config/env.sh
 Required variables:
 
 - `CLICKUP_TOKEN`: ClickUp API token used by task creation scripts.
-- `CLICKUP_BASE_URL`: Base ClickUp URL (without trailing slash), e.g. `https://app.clickup.com`.
 - `CLICKUP_INBOX_ID`: ClickUp List ID used by `clickup/inbox_add.sh`.
-- `CLICKUP_INBOX_PATH`: ClickUp inbox path appended to `CLICKUP_BASE_URL` by `clickup/inbox_open.sh`.
 - `DISCORD_BOT_TOKEN`: Discord bot token from Discord Developer Portal.
 - `CURSOR_API_KEY`: Cursor API key for `discord/meeting_summarize.sh` over SSH.
 - `DISCORD_MEETING_GUILD_ID`: Discord server (guild) ID where the bot operates.
@@ -172,9 +170,6 @@ Required variables:
 Prioritized by ROI: frequency, time saved, implementation effort, and risk.
 
 - [x] Create a quick ClickUp inbox task
-- [x] Open ClickUp inbox / today tasks
-- [x] Open ClickUp roadmaps
-- [x] Open a specific ClickUp backlog
 - [x] Start/stop a Discord meeting bot session
 - [x] Record a Discord meeting audio
 - [x] Transcribe a recorded meeting

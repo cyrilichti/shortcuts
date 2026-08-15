@@ -1,10 +1,13 @@
 {
   "recommendations": [
+    "cgoodwin90.github-purple-cursor",
+    "ms-azuretools.vscode-containers",
+    "eamodio.gitlens",
+    "pkief.material-icon-theme",
     "emilast.logfilehighlighter",
     "timonwong.shellcheck",
     "mads-hartmann.bash-ide-vscode",
     "foxundermoon.shell-format",
     "vivaxy.vscode-conventional-commits"
-  ],
-  "unwantedRecommendations": []
+  ]
 }

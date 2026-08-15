@@ -11,7 +11,7 @@ vars/runtime/*.bin
 
 # Agentic Workflow
 .cursor/mcp.json
-plans/*
+.agents/plans/*
 .agents/skills/*
 !.agents/skills/README.md
 !.agents/skills/agent-workflows/
