@@ -1,3 +1,4 @@
+# Leftover local secrets files (host env is the target model)
 env.sh
 node_modules/
 vars/logs/*.log
