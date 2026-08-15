@@ -128,12 +128,12 @@ Entry points `source config/app.sh`.
 
 **Constants** (set in `config/app.sh`):
 
-- `CLICKUP_API_BASE_URL`
+- `API_CLICKUP_BASE_URL`
 - `CLICKUP_BASE_URL`
 - `CLICKUP_INBOX_ID`
 - `CLICKUP_INBOX_PATH`
-- `DISCORD_MEETING_GUILD_ID`
-- `DISCORD_MEETING_VOICE_CHANNEL_ID`
+- `BOT_DISCORD_GUILD_ID`
+- `BOT_DISCORD_VOICE_CHANNEL_ID`
 
 Non-interactive SSH: `zsh -lc '…'` or `launchctl setenv` so secrets are inherited.
 
@@ -146,8 +146,8 @@ Non-interactive SSH: `zsh -lc '…'` or `launchctl setenv` so secrets are inheri
 - Copy bot token into host secrets as `BOT_DISCORD_TOKEN`.
 - Invite the bot with scope `bot` and permissions `View Channels`, `Connect` (optional `Speak`).
 - Set server and voice channel IDs in `config/app.sh`:
-  - `DISCORD_MEETING_GUILD_ID`
-  - `DISCORD_MEETING_VOICE_CHANNEL_ID`
+  - `BOT_DISCORD_GUILD_ID`
+  - `BOT_DISCORD_VOICE_CHANNEL_ID`
 
 ---
 
