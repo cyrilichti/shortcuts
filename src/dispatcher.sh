@@ -10,7 +10,7 @@ dispatch() (
   local code
   local level
 
-  action_name=${action%_action}
+  action_name=${action%_controller}
   log_file="$(dirname "${BASH_SOURCE[0]}")/../vars/logs/$action_name.log"
 
   if response=$("$action" "$@"); then
