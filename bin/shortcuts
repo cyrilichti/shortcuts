@@ -2,9 +2,17 @@
 
 # @describe Run a Shortcuts workflow
 
+SRC="$(dirname "$0")/../src"
+
+# shellcheck source=/dev/null
+source "$SRC/dispatcher.sh"
+# shellcheck source=/dev/null
+source "$SRC/controllers/meeting_record.sh"
+unset SRC
+
 # @cmd Start or reuse a Discord meeting recording
 meeting_record() {
-  :
+  dispatch meeting_record_controller
 }
 
 # @cmd Stop the current Discord meeting
