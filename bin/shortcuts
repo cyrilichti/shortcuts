@@ -10,6 +10,8 @@ source "$SRC/dispatcher.sh"
 source "$SRC/controllers/meeting_record.sh"
 # shellcheck source=/dev/null
 source "$SRC/controllers/meeting_stop.sh"
+# shellcheck source=/dev/null
+source "$SRC/controllers/inbox_add.sh"
 unset SRC
 
 # @cmd Start or reuse a Discord meeting recording
@@ -26,7 +28,7 @@ meeting_stop() {
 # @arg title <TITLE> Inbox item title
 # @arg priority <PRIORITY> Inbox item priority
 inbox_add() {
-  :
+  dispatch inbox_add_controller "$argc_title" "$argc_priority"
 }
 
 eval "$(argc --argc-eval "$0" "$@")"
