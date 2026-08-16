@@ -8,6 +8,8 @@ SRC="$(dirname "$0")/../src"
 source "$SRC/dispatcher.sh"
 # shellcheck source=/dev/null
 source "$SRC/controllers/meeting_record.sh"
+# shellcheck source=/dev/null
+source "$SRC/controllers/meeting_stop.sh"
 unset SRC
 
 # @cmd Start or reuse a Discord meeting recording
@@ -17,7 +19,7 @@ meeting_record() {
 
 # @cmd Stop the current Discord meeting
 meeting_stop() {
-  :
+  dispatch meeting_stop_controller
 }
 
 # @cmd Add an item to the ClickUp inbox
