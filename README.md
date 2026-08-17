@@ -83,7 +83,7 @@ before the system Bash 3.2. Use the existing login-shell convention with an
 explicit executable search path:
 
 ```bash
-zsh -lc ./bin/shortcuts --help
+zsh -lc './bin/shortcuts --help'
 ```
 
 ### Discord meeting
