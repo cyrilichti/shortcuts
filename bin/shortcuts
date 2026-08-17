@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# @describe Run a Shortcuts workflow
+
+SRC="$(dirname "$0")/../src"
+
+# shellcheck source=/dev/null
+source "$SRC/dispatcher.sh"
+# shellcheck source=/dev/null
+source "$SRC/controllers/meeting_record.sh"
+# shellcheck source=/dev/null
+source "$SRC/controllers/meeting_stop.sh"
+# shellcheck source=/dev/null
+source "$SRC/controllers/inbox_add.sh"
+unset SRC
+
+# @cmd Start or reuse a Discord meeting recording
+meeting_record() {
+  dispatch meeting_record_controller
+}
+
+# @cmd Stop the current Discord meeting
+meeting_stop() {
+  dispatch meeting_stop_controller
+}
+
+# @cmd Add an item to the ClickUp inbox
+# @arg title <TITLE> Inbox item title
+# @arg priority <PRIORITY> Inbox item priority
+inbox_add() {
+  dispatch inbox_add_controller "$argc_title" "$argc_priority"
+}
+
+eval "$(argc --argc-eval "$0" "$@")"

@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "description": "Personal automation workflows",
+  "scripts": {
+    "test:cli": "bash tests/cli_index_test.sh"
+  },
   "dependencies": {
     "@discordjs/voice": "^0.19.2",
     "@snazzah/davey": "^0.1.11",

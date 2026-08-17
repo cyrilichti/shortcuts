@@ -68,6 +68,24 @@ So I combined:
 - Host secrets for tokens/keys (see Configuration)
 - Non-secret app config in `config/app.sh`
 
+### Shared CLI runtime
+
+The shared CLI expects the existing Homebrew installations of Bash 5 and
+`argc` to be available on `PATH`. Verify the runtime with:
+
+```bash
+bash --version
+argc --argc-version
+```
+
+The CLI uses `#!/usr/bin/env bash`, so non-interactive SSH must put Homebrew
+before the system Bash 3.2. Use the existing login-shell convention with an
+explicit executable search path:
+
+```bash
+zsh -lc './bin/shortcuts --help'
+```
+
 ### Discord meeting
 
 Install whisper.cpp CLI on the Mac:
